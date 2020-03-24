@@ -185,8 +185,14 @@ class PhasePlaneInteractive(HasTraits):
         self.model.configure()
 
         #Setup the inital(current) state
-        self.svx = self.model.state_variables[0] #x-axis: 1st state variable
-        self.svy = self.model.state_variables[1] #y-axis: 2nd state variable
+        try:
+            self.svx = self.model.state_variables[0] #x-axis: 1st state variable
+            self.svy = self.model.state_variables[1] #y-axis: 2nd state variable
+        except:
+            import pdb; pdb.set_trace()
+            self.svx = self.model.state_variables['S1'] #x-axis: 1st state variable
+            self.svy = self.model.state_variables['S2']#y-axis: 2nd state variable
+
         self.mode = 0
         self.set_state_vector()
 

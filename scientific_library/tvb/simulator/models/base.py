@@ -59,8 +59,8 @@ class Model(HasTraits):
 
     def _build_observer(self):
         template = ("def observe(state):\n"
-                    "    {svars} = state\n"
-                    "    return numpy.array([{voi_names}])")
+                    "   {svars} = state \n"
+                    "   return numpy.array([{voi_names}])")
         svars = ','.join(self.state_variables)
         if len(self.state_variables) == 1:
             svars += ','
@@ -70,6 +70,7 @@ class Model(HasTraits):
         )
         namespace = {'numpy': numpy}
         self.log.debug('building observer with code:\n%s', code)
+        #import pdb;pdb.set_trace()
         exec(code, namespace)
         self.observe = namespace['observe']
         self.observe.code = code

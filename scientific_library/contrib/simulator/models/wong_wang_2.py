@@ -6,7 +6,7 @@
 # in conjunction with TheVirtualBrain-Framework Package. See content of the
 # documentation-folder for more details. See also http://www.thevirtualbrain.org
 #
-# (c) 2012-2020, Baycrest Centre for Geriatric Care ("Baycrest") and others
+# (c) 2012-2017, Baycrest Centre for Geriatric Care ("Baycrest") and others
 #
 # This program is free software: you can redistribute it and/or modify it under the
 # terms of the GNU General Public License as published by the Free Software Foundation,
@@ -30,22 +30,24 @@
 
 """
 The original Wong and Wang model
-
 .. moduleauthor:: Paula Sanz Leon <Paula@tvb.invalid>
-.. moduleauthor:: Marmaduke Woodman <marmaduke.woodman@univ-amu.fr> 
+.. moduleauthor:: Marmaduke Woodman <Marmaduke@tvb.invalid>
 .. moduleauthor:: Stuart A. Knock <Stuart@tvb.invalid>
-
 """
 
 
 # Third party python libraries
 import numpy
 
-# The Virtual Brain
+#The Virtual Brain
 from tvb.simulator.common import get_logger
 LOG = get_logger(__name__)
 
 from tvb.basic.neotraits.api import NArray, Range, List, Final
+import tvb.simulator.models as models
+
+#import tvb.datatypes.arrays as arrays
+#import tvb.basic.traits.types_basic as basic 
 import tvb.simulator.models as models
 
 class WongWang(models.Model):
@@ -53,46 +55,48 @@ class WongWang(models.Model):
     .. [WW_2006] Kong-Fatt Wong and Xiao-Jing Wang,  *A Recurrent Network 
                 Mechanism of Time Integration in Perceptual Decisions*. 
                 Journal of Neuroscience 26(4), 1314-1328, 2006.
-
     .. [WW_2006_SI] Supplementary Information
-
-    .. [WW_2007] Kong-Fatt Wong, Alexander C. Huk2, Michael N. Shadlen,
-                Xiao-Jing Wang, *Neural circuit dynamics underlying accumulation
-                of time-varying evidence during perceptual decision making*.
-                Front. Comput. Neurosci., 2007.
-
     A reduced model by Wong and Wang: A reduced two-variable neural model 
     that offers a simple yet biophysically plausible framework for studying 
     perceptual decision making in general.
-
     S is the NMDA gating variable. Since its decay time is much longer that those
     corresponding to AMPAand GABA gating variables, it is assumed that is 
     :math:`S_{NMDA}` that dominates the time evolution of the system.
-
-    The model (:math:`Sl`, :math:`Sr`) phase-plane, including a representation
+    The model (:math:`S1`, :math:`S2`) phase-plane, including a representation 
     of the vector field as well as its nullclines, using default parameters, 
     can be seen below:
-
-    Notation and parameter selection follows _Materials and methods_ from [WW_2007].
-
-    To reproduce the phase plane in Figure 5B, page 1320:
-        Jll = Jrr = 0.3725
-        Jlr = Jrl = 0.1137
-        J_ext = 1.1e-3
-        I_o = 0.3297
-        mu_o = 30
-        c = 6.4
-
-    To reproduce C & D vary c parameter respectively.
-
+    .. figure :: img/WongWang_01_mode_0_pplane.svg
+    .. _phase-plane-WongWang:
+        :alt: Phase plane of the reduced model by Wong and Wang (S1, S2)
+    To reproduce the phase plane in Figure 4A, page 1319 (five steady states):
+        J11 = 0.54
+        J22 = 0.18
+        J12 = 0.08
+        J21 = 0.58
+        J_ext = 0.0
+        I_o = 0.34
+        sigma_noise = 0.02
+        mu_o = 0.00
+        c = 100.0
+    To reproduce the phase plane in Figure 4B, page 1319 (saddle-type point):
+        b = 0.108
+        d = 121.0
+        gamma = 0.11
+        tau_s = 100.
+        J11 = 0.78
+        J22 = 0.59
+        J12 = 0.72
+        J21 = 0.67
+        J_ext = 0.52
+        I_o = 0.3255
+        sigma_noise = 0.02
+        mu_o = 0.35
+        c = 0.0
+    .. automethod:: __init__
     """
-    #self.Jll = self.Jrr = 0.3725
-        #self.Jlr = self.Jrl = 0.1137
-        #self.J_ext = 1.1e-3
-        #self.I_o = 0.3297
-        #self.mu_o = 30
-        #self.c = 6.4
-    # Define traited attributes for this model, these represent possible kwargs.
+    _ui_name = "Wong-Wang (Original)"
+
+    #Define traited attributes for this model, these represent possible kwargs.
     a = NArray(
         label=":math:`a`",
         default=numpy.array([0.270, ]),
@@ -127,33 +131,15 @@ class WongWang(models.Model):
         label=r":math:`\tau_{ampa}`",
         default=numpy.array([2., ]),
         domain=Range(lo=1.0, hi=10.0),
-        doc="""Kinetic parameter. AMPA decay time constant.""")
+        doc="""Kinetic parameter. AMPA decay time constant.""",
+       )
 
     J11 = NArray(
         label=":math:`J_{11}`",
         default=numpy.array([0.2609, ]),
         domain=Range(lo=0.0, hi=1.0),
         doc="""Synaptic coupling""")
-    Jll = NArray(
-        label=":math:`J_{ll}`",
-        default=numpy.array([ 0.3725, ]),
-        domain=Range(lo=0.0, hi=1.0),
-        doc="""Synaptic coupling""")
-    Jrr = NArray(
-        label=":math:`J_{rr}`",
-        default=numpy.array([ 0.3725, ]),
-        domain=Range(lo=0.0, hi=1.0),
-        doc="""Synaptic coupling""")
-    Jlr = NArray(
-        label=":math:`J_{lr}`",
-        default=numpy.array([ 0.1137, ]),
-        domain=Range(lo=0.0, hi=1.0),
-        doc="""Synaptic coupling""")
-    Jrl = NArray(
-        label=":math:`J_{rl}`",
-        default=numpy.array([ 0.1137, ]),
-        domain=Range(lo=0.0, hi=1.0),
-        doc="""Synaptic coupling""")
+
     J22 = NArray(
         label=":math:`J_{22}`",
         default=numpy.array([0.2609, ]),
@@ -174,13 +160,13 @@ class WongWang(models.Model):
 
     J_ext = NArray(
         label=":math:`J_{ext}`",
-        default=numpy.array([0.0011, ]), #0.52
+        default=numpy.array([0.52, ]),
         domain=Range(lo=0.0, hi=1.0),
         doc="""Synaptic coupling""")
 
     I_o = NArray(
         label=":math:`I_{o}`",
-        default=numpy.array([0.3297, ]),#3255
+        default=numpy.array([0.3255, ]),
         domain=Range(lo=0.0, hi=1.0),
         doc="""Effective external input""")
 
@@ -193,50 +179,53 @@ class WongWang(models.Model):
 
     mu_o = NArray(
         label=r":math:`\mu_{0}`",
-        default=numpy.array([30, ]), #0.03
-        domain=Range(lo=0.0, hi=100.0),
+        default=numpy.array([0.03, ]),
+        domain=Range(lo=0.0, hi=1.0),
         doc="""Stimulus amplitude""")
 
     c = NArray(
         label=":math:`c`",
-        default=numpy.array([6.4, ]),#51
+        default=numpy.array([51.0, ]),
         domain=Range(lo=0.0, hi=100.0),
         doc="""[%].  Percentage coherence or motion strength. This parameter
         comes from experiments in MT cells.""")
 
     state_variable_range = Final(
         {
-            "S1": numpy.array([0.0, 0.5]),
-            "S2": numpy.array([0.0, 0.5])
-        },
+             "S1": numpy.array([0.0, 0.3]),
+             "S2": numpy.array([0.0, 0.3])},
         label="State variable ranges [lo, hi]",
         doc="n/a"
     )
     state_variables = ['S1', 'S2']
 
+
     variables_of_interest = List(
-        of=str,
+        of = str,
         label="Variables watched by Monitors",
-        choices=("S1", "S2"),
-        default=("S1",),
-        doc="""default state variables to be monitored""")
+        choices=["S1", "S2"],
+        default=["S1"],
+        #select_multiple=True,
+        doc="""default state variables to be monitored""",
+        )#order=10)
+
 
     def __init__(self, **kwargs):
         """
         .. May need to put kwargs back if we can't get them from trait...
-
         """
+
+        #LOG.info('%s: initing...' % str(self))
 
         super(WongWang, self).__init__(**kwargs)
 
+        #self._state_variables = ["S1", "S2"]
         self._nvar = 2
         self.cvar = numpy.array([0], dtype=numpy.int32)
-        self.f =1
-        #derived parameters
-        self.I_mot_l = None
-        self.I_mot_r = None
-        
 
+        #derived parameters
+        self.I_1 = None
+        self.I_2 = None
 
         LOG.debug('%s: inited.' % repr(self))
 
@@ -248,26 +237,34 @@ class WongWang(models.Model):
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         r"""
-        The notation of those dynamic equations follows [WW_2007].
-        Derivatives of s are multiplied by 0.001 constant to match ms time scale.
+        These dynamic equations, taken from [WW_2006]_, ...
+        ..math::
+            \frac{dS_{i}}{dt} &= - \frac{S_{i}}{\tau_{S}} + (1 - S_{i})\gamma H_{i} \\
+            H_{i} &= \frac{a x_{i} - b}{1- \exp[-d (a x_{i} - b)]} \\
+            x_{1} &= J11  S_{1} - J_{12}S_{2} + I_{0} + I_{1} \\
+            x_{2} &= J22  S_{2} - J_{21}S_{1} + I_{0} + I_{2} \\
+            I_{i} &= J_{ext} \mu_{0} \left( 1 \pm \frac{c}{100}\right)
+        where :math:`i=` 1, 2 labels the selective population.
         """
         # add global coupling?
-        sl = state_variables[0, :]
-        sr = state_variables[1, :]
+        s1 = state_variables[0, :]
+        s2 = state_variables[1, :]
 
-        c_0 = coupling[0, :]
-        lc_0_l = local_coupling * sl
-        lc_0_r = local_coupling * sr
+        c_0 = coupling[0]
 
-        I_l = self.Jll * sl - self.Jlr*sr + self.I_mot_l + self.I_o #+ self.J_N * c_0 + self.J_N * lc_0_l
-        I_r = self.Jrr * sr - self.Jrl*sl + self.I_mot_r + self.I_o# + self.J_N * c_0 + self.J_N * lc_0_r
+        x1 = self.J11 * s1 - self.J12 * s2 + self.I_o + self.I_1 
+        x2 = self.J21 * s2 - self.J22 * s1 + self.I_o + self.I_2
 
-        r = lambda I_i: (self.a*I_i - self.b)*1./(1 - numpy.exp(-self.d*(self.a*I_i - self.b)))
+        H1 = (self.a * x1 - self.b) / (1 - numpy.exp(-self.d * (self.a * x1 - \
+                                                                self.b)))
+        H2 = (self.a * x2 - self.b) / (1 - numpy.exp(-self.d * (self.a * x2 - \
+                                                                self.b)))
 
-        ds1 = -sl*1./ self.tau_s + (1 - sl) * self.gamma * r(I_l) * 0.001 # to ms
-        ds2 = -sr*1./ self.tau_s + (1 - sr) * self.gamma * r(I_r) * 0.001 # to ms
+        ds1 = - (s1 / self.tau_s) + (1 - s1) * H1 * self.gamma
+        ds2 = - (s2 / self.tau_s) + (1 - s2) * H2 * self.gamma
 
         derivative = numpy.array([ds1, ds2])
+
         return derivative
 
 
@@ -275,36 +272,31 @@ class WongWang(models.Model):
         """
         Derived parameters
         """
-        # Additional parameter g_stim introduced that controls I_mot strength
-        self.I_mot_l = self.J_ext * self.mu_o * (1 + self.f * self.c *1. / 100)
-        self.I_mot_r = self.J_ext * self.mu_o * (1 - self.f * self.c *1. / 100)
-        if len(self.I_mot_l) > 1:
-            self.I_mot_l = numpy.expand_dims(self.I_mot_l, -1)
-            self.I_mot_r = numpy.expand_dims(self.I_mot_r, -1)
+
+        self.I_1 = self.J_ext * self.mu_o * (1 + self.c / 100)
+        self.I_2 = self.J_ext * self.mu_o * (1 - self.c / 100)
 
 
 
 if __name__ == "__main__":
     # Do some stuff that tests or makes use of this module...
     LOG.info("Testing %s module..." % __file__)
-
+    
     # Check that the docstring examples, if there are any, are accurate.
     import doctest
     doctest.testmod()
-
+    
     #Initialise Models in their default state:
     WW = WongWang()
-
+        
     LOG.info("Model initialised in its default state without error...")
-
+    
     LOG.info("Testing phase plane interactive ... ")
-
+    
     # Check the Phase Plane
     from tvb.simulator.plot.phase_plane_interactive import PhasePlaneInteractive
     import tvb.simulator.integrators
-
+        
     INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-5)
     ppi_fig = PhasePlaneInteractive(model=WW, integrator=INTEGRATOR)
     ppi_fig.show()
-
-#EoF
