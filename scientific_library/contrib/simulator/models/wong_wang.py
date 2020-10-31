@@ -174,7 +174,7 @@ class WongWang(models.Model):
 
     J_ext = NArray(
         label=":math:`J_{ext}`",
-        default=numpy.array([0.0011, ]), #0.52
+        default=numpy.array([0.00052, ]), #0.52
         domain=Range(lo=0.0, hi=1.0),
         doc="""Synaptic coupling""")
 
@@ -303,7 +303,7 @@ if __name__ == "__main__":
     from tvb.simulator.plot.phase_plane_interactive import PhasePlaneInteractive
     import tvb.simulator.integrators
 
-    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-5)
+    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-3)
     ppi_fig = PhasePlaneInteractive(model=WW, integrator=INTEGRATOR)
     ppi_fig.show()
 

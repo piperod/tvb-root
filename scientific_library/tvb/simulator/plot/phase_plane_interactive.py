@@ -775,7 +775,7 @@ class PhasePlaneInteractive(HasTraits):
         """
         svx_ind = self.model.state_variables.index(self.svx)
         svy_ind = self.model.state_variables.index(self.svy)
-
+        print(svx_ind)
         #Calculate an example trajectory
         state = self.default_sv.copy()
         self.integrator.clamped_state_variable_indices = numpy.setdiff1d(

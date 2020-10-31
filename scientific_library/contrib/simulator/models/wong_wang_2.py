@@ -95,29 +95,30 @@ class WongWang(models.Model):
     .. automethod:: __init__
     """
     _ui_name = "Wong-Wang (Original)"
-
+            
+               
     #Define traited attributes for this model, these represent possible kwargs.
     a = NArray(
         label=":math:`a`",
         default=numpy.array([0.270, ]),
-        domain=Range(lo=0.0, hi=1.0),
+        domain=Range(lo=0.260, hi=0.272),
         doc=""" (mVnC)^{-1}. Parameter chosen to ﬁt numerical solutions.""")
 
     b = NArray(
         label=":math:`b`",
         default=numpy.array([0.108, ]),
-        domain=Range(lo=0.0, hi=1.0),
+        domain=Range(lo=0.1070001, hi=0.109001),
         doc="""[kHz]. Parameter chosen to ﬁt numerical solutions.""")
 
     d = NArray(
         label=":math:`d`",
-        default=numpy.array([154.0, ]),
-        domain=Range(lo=0.0, hi=200.0),
+        default=numpy.array([154, ]),#154
+        domain=Range(lo=0.0, hi=155),
         doc="""[ms]. Parameter chosen to ﬁt numerical solutions.""")
 
     gamma = NArray(
         label=r":math:`\gamma`",
-        default=numpy.array([0.0641, ]),
+        default=numpy.array([0.641, ]),#0.0641
         domain=Range(lo=0.0, hi=1.0),
         doc="""Kinetic parameter divided by 1000 to set the time scale in ms""")
 
@@ -136,37 +137,37 @@ class WongWang(models.Model):
 
     J11 = NArray(
         label=":math:`J_{11}`",
-        default=numpy.array([0.2609, ]),
+        default=numpy.array([0.2609, ]),#0.2609
         domain=Range(lo=0.0, hi=1.0),
         doc="""Synaptic coupling""")
 
     J22 = NArray(
         label=":math:`J_{22}`",
-        default=numpy.array([0.2609, ]),
+        default=numpy.array([0.2609, ]),#0.2609
         domain=Range(lo=0.0, hi=1.0),
         doc="""Synaptic coupling""")
 
     J12 = NArray(
         label=":math:`J_{12}`",
-        default=numpy.array([0.0497, ]),
+        default=numpy.array([0.1, ]),#0.0497
         domain=Range(lo=0.0, hi=1.0),
         doc="""Synaptic coupling""")
 
     J21 = NArray(
         label=":math:`J_{21}`",
-        default=numpy.array([0.0497, ]),
+        default=numpy.array([0.1, ]),#0.0497
         domain=Range(lo=0.0, hi=1.0),
         doc="""Synaptic coupling""")
 
     J_ext = NArray(
         label=":math:`J_{ext}`",
-        default=numpy.array([0.52, ]),
+        default=numpy.array([0.00052, ]),
         domain=Range(lo=0.0, hi=1.0),
         doc="""Synaptic coupling""")
 
     I_o = NArray(
         label=":math:`I_{o}`",
-        default=numpy.array([0.3255, ]),
+        default=numpy.array([0.28, ]),
         domain=Range(lo=0.0, hi=1.0),
         doc="""Effective external input""")
 
@@ -179,21 +180,21 @@ class WongWang(models.Model):
 
     mu_o = NArray(
         label=r":math:`\mu_{0}`",
-        default=numpy.array([0.03, ]),
-        domain=Range(lo=0.0, hi=1.0),
+        default=numpy.array([30, ]),#0.03
+        domain=Range(lo=10, hi=50),
         doc="""Stimulus amplitude""")
 
     c = NArray(
         label=":math:`c`",
-        default=numpy.array([51.0, ]),
-        domain=Range(lo=0.0, hi=100.0),
+        default=numpy.array([0.21, ]),#52
+        domain=Range(lo=0.0, hi=1.0),
         doc="""[%].  Percentage coherence or motion strength. This parameter
         comes from experiments in MT cells.""")
 
     state_variable_range = Final(
         {
-             "S1": numpy.array([0.0, 0.3]),
-             "S2": numpy.array([0.0, 0.3])},
+             "S1": numpy.array([0, 1]),
+             "S2": numpy.array([0, 1])},
         label="State variable ranges [lo, hi]",
         doc="n/a"
     )
@@ -234,6 +235,14 @@ class WongWang(models.Model):
         super(WongWang, self).configure()
         self.update_derived_parameters()
 
+    # def ornstein_uhlenbeck(self,T,tau,sigma=0.009,x0=0,dt=1):
+    #     yita = numpy.random.normal(T/dt,0,numpy.sqrt(dt))
+    #     n = T/dt
+    #     x = numpy.zeros(n)
+    #     x[0]=x0
+    #     for i in range(2,n+1):
+    #         x[i] = x[i-1] + (-x[i-1]*dt/tau + sigma*yita[i-1]*dt/numpy.sqrt(tau))
+    #     return x
 
     def dfun(self, state_variables, coupling, local_coupling=0.0):
         r"""
@@ -251,9 +260,10 @@ class WongWang(models.Model):
         s2 = state_variables[1, :]
 
         c_0 = coupling[0]
-
+        #import pdb;pdb.set_trace()
         x1 = self.J11 * s1 - self.J12 * s2 + self.I_o + self.I_1 
-        x2 = self.J21 * s2 - self.J22 * s1 + self.I_o + self.I_2
+        #x2 = self.J21 * s2 - self.J22 * s1 + self.I_o + self.I_2
+        x2 = self.J22 * s2 - self.J21 * s1 + self.I_o + self.I_2
 
         H1 = (self.a * x1 - self.b) / (1 - numpy.exp(-self.d * (self.a * x1 - \
                                                                 self.b)))
@@ -273,8 +283,8 @@ class WongWang(models.Model):
         Derived parameters
         """
 
-        self.I_1 = self.J_ext * self.mu_o * (1 + self.c / 100)
-        self.I_2 = self.J_ext * self.mu_o * (1 - self.c / 100)
+        self.I_1 = self.J_ext * self.mu_o * (1 + self.c )
+        self.I_2 = self.J_ext * self.mu_o * (1 - self.c )
 
 
 
@@ -293,10 +303,69 @@ if __name__ == "__main__":
     
     LOG.info("Testing phase plane interactive ... ")
     
-    # Check the Phase Plane
+
+
+    
+    ## Check the Phase Plane
     from tvb.simulator.plot.phase_plane_interactive import PhasePlaneInteractive
     import tvb.simulator.integrators
-        
-    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=2**-5)
+    import tvb.simulator.noise
+    import pyargs
+    import numpy 
+    import matplotlib.pyplot as plt
+    noise = tvb.simulator.noise.Additive()
+    INTEGRATOR = tvb.simulator.integrators.HeunDeterministic(dt=1)
+    scheme = INTEGRATOR.scheme
+    svx = WW.state_variables[0]
+    svy = WW.state_variables[1]
+    svx_ind = WW.state_variables.index(svx)
+    svy_ind = WW.state_variables.index(svy)
+    sv_mean = numpy.array([WW.state_variable_range[key].mean() for key in WW.state_variables])
+    sv_mean = sv_mean.reshape((WW.nvar, 1, 1))
+    default_sv = sv_mean.repeat(WW.number_of_modes,axis=2)
+    no_coupling = numpy.zeros((WW.nvar, 1,
+                                        WW.number_of_modes))
+    INTEGRATOR.clamped_state_variable_indices = numpy.setdiff1d(
+            numpy.r_[:len(WW.state_variables)], numpy.r_[svx_ind, svy_ind])
+    state = default_sv.copy()
+    # dataset =[]
+    # threshold = 1.5e-18
+    # counter = 0
+    # for x in numpy.arange(0,1,0.01):
+    #     for y in numpy.arange(0,1,0.01):
+    #         counter+=1
+    #         state[svx_ind] = x
+    #         state[svy_ind] = y
+    #         TRAJ_STEPS=4096
+    #         traj = numpy.zeros((TRAJ_STEPS+1, WW.nvar, 1,
+    #                         WW.number_of_modes))
+    #         traj[0, :] = state
+    #         WW.update_derived_parameters()
+    #         for step in range(TRAJ_STEPS):
+    #             #import pdb; pdb.set_trace()
+    #             state = scheme(state, WW.dfun, no_coupling, 0.0, 0.0)
+    #             traj[step+1, :] = state
+    #         xx = traj[:, svx_ind, 0, 0]
+    #         yy = traj[:, svy_ind, 0, 0]
+    #         distances  = numpy.square((xx[:-1]-xx[1:])**2 + (yy[:-1]-yy[1:])**2)
+    #         steps = (distances >threshold).sum()
+    #         if counter%10==0: 
+    #             print(counter)
+    #             print(distances)
+    #             print((distances > threshold).sum())
+    #         dataset.append([x,y,xx[-1],yy[-1],steps,threshold,xx,yy,distances])
+
+    # import pandas as pd 
+
+    # datadf = pd.DataFrame(dataset,columns=['S1_i','S2_i','S1_f','S_2_f','steps','threshold_distances','raw s1','raw s2','raw_distances'])
+    # datadf.to_csv('dataset_activations.csv')
+    # plt.scatter(x,y,s=42,c='g',marker='o')
+    
+    # plt.scatter(xx,yy)
+    # plt.show()
+    # plt.scatter(range(len(distances)),distances)
+    # plt.show()
+    #import pdb;pdb.set_trace()
+    #print('initializing')
     ppi_fig = PhasePlaneInteractive(model=WW, integrator=INTEGRATOR)
     ppi_fig.show()
